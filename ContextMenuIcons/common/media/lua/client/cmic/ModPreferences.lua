@@ -18,17 +18,17 @@ function ContextMenuIcons.Events.OnPreferencesApplied(func)
     table.insert(onApplyCallbacks, func)
 end 
 
+local sortedPacks = {}
+
 local function getIconPackName(options)
     local packIndex = options:getOption("icons_iconpack_selection"):getValue()
-    local i = 1
-    for packName, _ in pairs(ContextMenuIcons.iconPacksList) do
-        if i == packIndex then
-            ContextMenuIcons.isNoneIconPackSelected = false
-            return packName
-        end
-        i = i + 1
+    local packName = sortedPacks[packIndex]
+    if packName then
+        ContextMenuIcons.isNoneIconPackSelected = false
+        return packName
     end
     ContextMenuIcons.isNoneIconPackSelected = true
+    return nil
 end
 
 local function ContextMenuIconsPreferences() 
@@ -36,35 +36,23 @@ local function ContextMenuIconsPreferences()
     
     local comboBox = options:addComboBox("icons_iconpack_selection", getText("UI_ContextMenuIcons_IconPackSelector_Name"), getText("UI_ContextMenuIcons_IconPackSelector_Tooltip"))
 
-    local iconPacksListSize = 0
+    table.wipe(sortedPacks)
     for packName, _ in pairs(ContextMenuIcons.iconPacksList) do
-        comboBox:addItem(getText(packName), false) -- getValue(): 1
-        iconPacksListSize = iconPacksListSize + 1
+        table.insert(sortedPacks, packName)
+    end
+    table.sort(sortedPacks)
+
+    for _, packName in ipairs(sortedPacks) do
+        comboBox:addItem(getText(packName), false)
     end
 
-    if iconPacksListSize == 0 then
+    if #sortedPacks == 0 then
         comboBox:addItem(getText("UI_None"), true)
     end
-    
-    local colorPicker = options:addColorPicker("icons_color_picker",  getText("UI_ContextMenuIcons_ColorPicker_Name"), 1, 1, 1, 1,  getText("UI_ContextMenuIcons_ColorPicker_Tooltip"))
-    --[[
-    local function updateColorPickerState()
-        local packName = getIconPackName(options)
-        local packSettings = configurations[packName] and configurations[packName].settings
-        
-        local isColorable = false
-        if packSettings and packSettings.isColorable then
-            isColorable = true
-        end
-        
-        colorPicker:setEnabled(isColorable)
-    end
 
-    comboBox.onChange = function(self)
-        updateColorPickerState()
-    end
-    --]]
-    function options:apply()
+    local colorPicker = options:addColorPicker("icons_color_picker",  getText("UI_ContextMenuIcons_ColorPicker_Name"), 1, 1, 1, 1,  getText("UI_ContextMenuIcons_ColorPicker_Tooltip"))
+    
+    options.apply = function (self)
         local iconPackName = getIconPackName(options)
         local iconPackSettings = nil
         if iconPackName ~= nil and not ContextMenuIcons.isNoneIconPackSelected then
@@ -86,21 +74,15 @@ local function ContextMenuIconsPreferences()
         
         utils.log("ContextMenuIcons: Settings Applied!")
     end
-
-    options:apply()
-end
-
-local function applyPreferences()
-    local options = PZAPI.ModOptions:getOptions("ContextMenuIcons")
-    if options then
-        options:apply()
-    end
 end
 
 local function initialize()
     ContextMenuIconsPreferences()
-    --local comboBox = PZAPI.ModOptions:getOptions("ContextMenuIcons"):getOption("icons_iconpack_selection")
 end
-
 Events.OnResetLua.Add(initialize)
+
+local function applyPreferences()
+    local options = PZAPI.ModOptions:getOptions("ContextMenuIcons")
+    options:apply()
+end
 Events.OnGameStart.Add(applyPreferences)

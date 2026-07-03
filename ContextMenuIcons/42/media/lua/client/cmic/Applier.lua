@@ -13,6 +13,8 @@ local dynamicNamedInventoryIcons = {}
 local dynamicNamedWorldIcons = {}
 
 local function resetIconTables()
+    iconHandler.resetIconTexturesCache()
+
     staticNamedInventoryIcons = {}
     staticNamedWorldIcons = {}
     dynamicNamedInventoryIcons = {}
@@ -43,6 +45,7 @@ local function createAllIconTables()
 
     local iconPack = ContextMenuIcons.iconPacksList[ContextMenuIcons.preferences.iconPackName]
 
+    -- utils.log("createAllIconTables()")
     resetIconTables()
     createIconTables(iconPack.options.inventory, staticNamedInventoryIcons, dynamicNamedInventoryIcons)
     createIconTables(iconPack.options.world, staticNamedWorldIcons, dynamicNamedWorldIcons)
@@ -107,7 +110,9 @@ local function applyWorldIcons(player, context)
     applyIcons(context, staticNamedWorldIcons, dynamicNamedWorldIcons)
 end
 
-ContextMenuIcons.Events.OnPreferencesApplied(function() iconHandler.resetIconTexturesCache() end)
-ContextMenuIcons.Events.OnPreferencesApplied(createAllIconTables)
 Events.OnFillInventoryObjectContextMenu.Add(applyInventoryIcons)
 Events.OnFillWorldObjectContextMenu.Add(applyWorldIcons)
+
+ContextMenuIcons.Events.OnPreferencesApplied(createAllIconTables)
+Events.OnGameStart.Add(createAllIconTables)
+-- Events.OnMainMenuEnter.Add(safeInitIconTables) -- Для отображения в главном меню / настройках
