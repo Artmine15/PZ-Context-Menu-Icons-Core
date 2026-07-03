@@ -1,0 +1,6 @@
+{
+	"UI_ContextMenuIcons_IconPackSelector_Name": "Пак иконок",
+    "UI_ContextMenuIcons_IconPackSelector_Tooltip": "Вы можете выбрать один из установленных паков иконок.",
+    "UI_ContextMenuIcons_ColorPicker_Name": "Цвет иконок",
+    "UI_ContextMenuIcons_ColorPicker_Tooltip": "Не все паки иконок поддерживают окраску."
+}
